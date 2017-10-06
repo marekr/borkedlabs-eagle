@@ -1,0 +1,7 @@
+1. Setup board, prettify,etc
+ - Ensure holes have tDoc and bDoc markers on them the same size
+ - Make sure pins have tDoc markers on them
+2. Drop in frame into board
+3. Use cam job to generate gebers
+4. Use the command "run cam2print PDF;" to print the gerber layers to PDFs. 
+5. Use "smd-pnp-mils" to generate autoinsert.csv for pick and place data in mils

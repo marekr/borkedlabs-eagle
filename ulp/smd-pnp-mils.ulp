@@ -1,0 +1,74 @@
+string Version = "1.0.0";
+string fileMessage;
+
+string rotation(real Angle)
+{
+	string s;
+	sprintf(s, "%.1f", Angle);
+	int pos = strchr(s, '.');
+	if (pos >= 0) {
+		if (s[pos + 1] == '0') {
+			s[pos] = 0;
+		}
+	}
+
+	return s;
+}
+
+string side(int Mirror) {
+	string s;
+
+	if (Mirror){
+		s = "Bottom";
+	}
+	else {
+		s = "Top";
+	}
+	return s;
+}
+
+string smdBool(int isSmd) {
+	string s;
+
+	if (isSmd){
+		s = "TRUE";
+	}
+	else {
+		s = "FALSE";
+	}
+	return s;
+}
+
+if (!board) {
+	dlgMessageBox("<hr><b>ERROR: This ULP will only operate in the board layout view.</b></hr><p>Switch to the board layout editor and re-run.");
+	exit(1);
+}
+
+if (board) board(B) {
+	output(filesetext(B.name, "-autoinsert.csv")) {
+		printf("%s,%s,%s,%s,%s\n", "Name", "Layer","SMD", "Location", "Orientation");
+		B.elements(E) {
+			int isSmd;
+			isSmd = 0;
+		   
+			//skip frame library parts
+			int pos = strrstr(E.package.library , "frames");
+			if (pos >= 0) {
+				continue;
+			}
+		   
+			E.package.contacts(C) { 
+				if (C.smd) {
+					isSmd = 1;
+				}
+			}
+			
+			printf("%s,%s,%s,\"(%1.2f,%1.2f)\",%s\n", E.name, side(E.mirror), smdBool(isSmd), u2mil(E.x), u2mil(E.y), rotation(E.angle));
+		}
+	}
+
+	fileMessage = "<hr><b>PNP SMD XY Data generated</b></hr><p>Include this file in the .ZIP file along with your GERBER files:</p>" + filesetext(B.name, "-autoinsert.csv\n");
+
+	dlgMessageBox(fileMessage);
+}
+
