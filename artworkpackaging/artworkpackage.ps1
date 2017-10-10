@@ -18,7 +18,7 @@ Creates releaseplots as $artworkName-REV$rev-RELEASEPLOTS.pdf
 
  #>
 
-function Merge-PDF($files, $path, $filename) {
+function Merge-PDF($files, $path, $outputFilePath) {
     $typePath = [System.IO.Path]::combine($PSScriptRoot,"deps\PdfSharp.dll");
     Add-Type -Path $typePath
 
@@ -37,29 +37,28 @@ function Merge-PDF($files, $path, $filename) {
 		}
 	}
     
-    $outPath = [System.IO.Path]::combine($path,$filename);
-    $output.Save($outPath)            
+    $output.Save($outputFilePath)            
 }
 
 $path = $(get-location).Path
 
-$tmpPath = [System.IO.Path]::combine($path,'tmp');
-New-Item $tmpPath -type directory -Force
+$packagePath = [System.IO.Path]::combine($path,'package');
+New-Item $packagePath -type directory -Force
 
 
 $outputPackageName = [string]::Format("{0} REV {1} .zip", $artworkName, $rev) 
 $zipPath = [System.IO.Path]::combine($path,$outputPackageName)
 
+Get-ChildItem $from -Filter *.gbr -Recurse | % {Copy-Item -Path $_ -Destination  $packagePath -Force -Container }
 Write-Host "Packaging gerbers...."
-Compress-Archive -Force -Path .\*.gbr -DestinationPath $zipPath -ErrorVariable archiveError
 if ($archiveError) {
 	Write-Host "Packaging error!"
 	exit 1
 }
 
 Write-Host "Packaging drill...."
-Compress-Archive -Update -Path .\*drill.dri -DestinationPath $zipPath -ErrorVariable archiveError
-Compress-Archive -Update -Path .\*drill.txt -DestinationPath $zipPath -ErrorVariable +archiveError
+Get-ChildItem $from -Filter *.drill.dri -Recurse | % {Copy-Item -Path $_ -Destination  $packagePath -Force -Container }
+Get-ChildItem $from -Filter *.drill.txt -Recurse | % {Copy-Item -Path $_ -Destination  $packagePath -Force -Container }
 if ($archiveError) {
 	Write-Host "Packaging error!"
 	exit 1
@@ -67,10 +66,10 @@ if ($archiveError) {
 
 Write-Host "Packaging auto insert...."
 $autoInsertName = [string]::Format("AUTO-INSERT-REV{0}.csv", $rev)
-$autoInsertTmp = [System.IO.Path]::combine($tmpPath,$autoInsertName)
-$insertFile = Get-ChildItem -Filter AUTO*INSERT*.csv | Select-Object -First 1 -ExpandProperty FullName | Copy-Item -Destination $autoInsertTmp
+$autoInsertPkged = [System.IO.Path]::combine($packagePath,$autoInsertName)
+$insertFile = Get-ChildItem -Filter AUTO*INSERT*.csv | Select-Object -First 1 -ExpandProperty FullName | Copy-Item -Destination $autoInsertPkged
 
-Compress-Archive -Update -Path $autoinsertTmp -DestinationPath $zipPath -ErrorVariable archiveError
+Compress-Archive -Update -Path $autoInsertPkged -DestinationPath $zipPath -ErrorVariable archiveError
 if ($archiveError) {
 	Write-Host "Packaging error!"
 	exit 1
@@ -89,16 +88,12 @@ $files = @(
    )
    
 $releasePlotsName = [string]::Format("{0}-REV{1}-RELEASEPLOTS.pdf", $artworkName, $rev) 
-Merge-Pdf $files $path $releasePlotsName
+$releasePlotsPkged = [System.IO.Path]::combine($packagePath,$releasePlotsName)
+Merge-Pdf $files $path $releasePlotsPkged
 
-Write-Host "Packaging release plots...."
+$archiveSource = [System.IO.Path]::combine($packagePath,'*')
+Compress-Archive -Force -Path $archiveSource -DestinationPath $zipPath -ErrorVariable archiveError
 
-Compress-Archive -Update -Path $releasePlotsName -DestinationPath $zipPath -ErrorVariable archiveError
-if ($archiveError) {
-	Write-Host "Packaging error!"
-	exit 1
-}
-
-Remove-Item $tmpPath -Force -Recurse
+Remove-Item $packagePath -Force -Recurse
 
 exit 0
