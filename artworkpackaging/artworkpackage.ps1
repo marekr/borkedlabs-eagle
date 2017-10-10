@@ -57,6 +57,14 @@ if ($archiveError) {
 	exit 1
 }
 
+Write-Host "Packaging drill...."
+Compress-Archive -Update -Path .\*drill.dri -DestinationPath $zipPath -ErrorVariable archiveError
+Compress-Archive -Update -Path .\*drill.txt -DestinationPath $zipPath -ErrorVariable +archiveError
+if ($archiveError) {
+	Write-Host "Packaging error!"
+	exit 1
+}
+
 Write-Host "Packaging auto insert...."
 $autoInsertName = [string]::Format("AUTO-INSERT-REV{0}.csv", $rev)
 $autoInsertTmp = [System.IO.Path]::combine($tmpPath,$autoInsertName)
