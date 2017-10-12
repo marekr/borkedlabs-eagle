@@ -1233,13 +1233,15 @@ void Pad(UL_PAD P)
 
 			switch (sc) {
 				case PAD_SHAPE_LONG:
-				case PAD_SHAPE_OFFSET: {
-										int e = P.elongation;
-										if (e)
-										   sprintf(s, "%d", e);
-										else
-										   sc = PAD_SHAPE_OCTAGON;
-									  }
+				case PAD_SHAPE_OFFSET: 	{
+											int e = P.elongation;
+											if (e) {
+												sprintf(s, "%d", e);
+											}
+											else {
+												sc = PAD_SHAPE_OCTAGON;
+											}
+										}
 			}
 			Count++;
 			DxfInsert(PadColor && !IsSupplyLayer[l] && l <= LAYER_BOTTOM ? LAYER_PADS : l, Shape[sc] + s, DxfUnit(P.x), DxfUnit(P.y), d, d, P.angle);
@@ -1415,8 +1417,12 @@ void Element(UL_ELEMENT E)
 	int layer;
 
 	switch (E.mirror) {
-		case 0: layer = LAYER_TORIGINS; break; // not mirrored
-		case 1: layer = LAYER_BORIGINS; break; // mirrored
+		case 0: 
+			layer = LAYER_TORIGINS; 
+			break; // not mirrored
+		case 1: 
+			layer = LAYER_BORIGINS; 
+			break; // mirrored
 	}
 
 	DxfPoint(layer, DxfUnit(E.x), DxfUnit(E.y));
