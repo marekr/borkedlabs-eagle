@@ -28,6 +28,9 @@ string tok_Prompt  = "Prompt=";
 string sec_Prompt[];
 string tok_Out_put = "Output=";
 string sec_Out_put[];
+string tok_Flags   = "Flags=";
+string sec_Flags[];
+int    mirror[];
 
 string tok_Sheet   = "Sheet=";
 int    sec_Sheet[];
@@ -117,9 +120,10 @@ void editsec(int sec) {
 	return;
 }
 
-void commandPrint(string sectab) {
-	dlgMessageBox(sectab, "OK");
-	cmd += "RUN bl-dxf -o " + sectab + Unit + AlwaysVertorFont + UseWireWidth + FillArea + ";\n";
+void commandPrint(string sectab, string flags) {
+	flags = " " + flags;
+	cmd += "RUN bl-dxf -o " + sectab + flags + Unit + AlwaysVertorFont + UseWireWidth + FillArea + ";\n";
+
 	return;
 }
 
@@ -174,6 +178,14 @@ void readCam(void) {
 			}
 		}
 
+		if( strstr(lines[sn], tok_Flags     ) == 0) {
+			sec_Flags[sx] = strsub(lines[sn], strlen(tok_Flags) + 1, strlen(lines[sn]) - (strlen(tok_Flags)+2) );
+			string fl[];
+			int fn = strsplit(fl, sec_Flags[sx], ' ');
+			mirror[sx]    = strtol(fl[0]);
+			//Mirror Rotate Upside_down pos._Coord Quick_plot Optimize Fill_Pads
+		}
+		 
 		if( strstr(lines[sn], tok_Sheet ) == 0) {
 			sec_Sheet[sx] = strtod( strsub(lines[sn], strlen(tok_Sheet) , strlen(lines[sn]) - (strlen(tok_Sheet) ) ) );
 		}
@@ -433,7 +445,13 @@ for (int tpn = 1; tpn <= sx; tpn++) {
 			}
 		}
 		cmd += ";\n";
-		commandPrint(sec_Out_put[tpn]);
+		
+		string flags = "";
+		if(mirror[tpn]) {
+			flags += "-m";
+		}
+		
+		commandPrint(sec_Out_put[tpn], flags);
 	}
 
 	if(schematic) {
@@ -457,7 +475,7 @@ for (int tpn = 1; tpn <= sx; tpn++) {
 					sprintf(sh, "EDIT '.s%d';\n", SH.number);
 					cmd += sh;
 					sprintf(shn, "_s%d", SH.number);
-					commandPrint(shn);
+					commandPrint(shn, "");
 				}
 			}
 			break;
@@ -467,7 +485,7 @@ for (int tpn = 1; tpn <= sx; tpn++) {
 					sprintf(sh, "EDIT '.s%d';\n", prn);
 					cmd += sh;
 					sprintf(shn, "_s%d", prn);
-					commandPrint(shn);
+					commandPrint(shn, "");
 				}
 			break;
 
@@ -475,14 +493,14 @@ for (int tpn = 1; tpn <= sx; tpn++) {
 				sprintf(sh, "EDIT '.s%d';\n", sec_Sheet[tpn]);
 				cmd += sh;
 				sprintf(shn, "_s%d", sec_Sheet[tpn]);
-				commandPrint(shn);
+				commandPrint(shn, "");
 				break;
 
 			case 3: 
 				sprintf(sh, "EDIT '.s%s';\n", actualsheet);
 				cmd += sh;
 				sprintf(shn, ".s%s", actualsheet);
-				commandPrint(shn);
+				commandPrint(shn, "");
 				break;
 		}
 	}
