@@ -70,9 +70,12 @@ string help = usage+ "<qt><b>This ULP converts a CAM Job to a DXF Export script!
               "CAM Jobs can be edited and saved by the CAM processor only.</qt>";
 
 string ulp_path ;
+
 char bkslash = '/';
 int pos = strrchr(argv[0], bkslash);
-if (pos >= 0) ulp_path = strsub(argv[0], 0, pos + 1);
+if (pos >= 0) {
+	ulp_path = strsub(argv[0], 0, pos + 1);
+}
 
 string cmd = "";
 int test = 0;
